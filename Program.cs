@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using TestIdentity.Database;
 using TestIdentity.Models.AppModels;
@@ -66,52 +67,52 @@ namespace TestIdentity
                 options.Configuration = "localhost:6379";
                 options.InstanceName = "UserList";
             });
-
-        }
-
-        private async Task CreateUserAsync(UserManager<AppUser> userManager)
-        {
-            var existingUser = await userManager.FindByNameAsync("testuser");
-
-            if (existingUser == null)
+            services.AddSwaggerGen(c =>
             {
-                // Создаем нового пользователя
-                var newUser = new AppUser
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TestIdentity", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    UserName = "testuser",
-                    Email = "testuser@example.com",
-                    HospitalId = "12431412"
-                };
+                    Description = "JWT Authorization header using the Bearer scheme",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer"
+                });
 
-                // Добавляем пользователя в базу данных
-                var result = await userManager.CreateAsync(newUser, "root");
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
 
-                if (result.Succeeded)
-                {
-                    // Успешно создан новый пользователь
-                }
-                else
-                {
-                    // Обработка ошибок при создании пользователя, если необходимо
-                }
-            }
         }
-
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, UserManager<AppUser> userManager)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseSwagger();
             }
             else
             {
                 app.UseExceptionHandler();
                 app.UseHsts();
             }
-            CreateUserAsync(userManager).Wait();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "TestShop");
+            });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
