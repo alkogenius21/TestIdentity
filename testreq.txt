@@ -1,0 +1,14 @@
+register //
+{
+    "Email": "testuser@example.com",
+    "UserName": "testuser",
+    "Password": "Krerdeu1015)",
+    "ConfirmPassword": "Krerdeu1015)",
+    "HospId": "2131241231"
+}
+
+login //
+{
+    "UserName": "testuser",
+    "Password": "Krerdeu1015)"
+}
